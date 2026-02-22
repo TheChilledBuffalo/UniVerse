@@ -41,7 +41,7 @@ public class User {
     private Department department;
 
     @Builder.Default
-    private boolean mustChangePassword = true;
+    private Boolean mustChangePassword = true;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
