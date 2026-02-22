@@ -2,6 +2,7 @@ package com.universe.backend.filter;
 
 import com.universe.backend.entity.User;
 import com.universe.backend.repository.UserRepository;
+import com.universe.backend.service.RevokedTokenService;
 import com.universe.backend.utils.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -24,6 +25,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
+    private final RevokedTokenService revokedTokenService;
 
     @Override
     @NullMarked
@@ -38,6 +40,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         String jwt = authHeader.substring(7);
+
+        if (revokedTokenService.isTokenRevoked(jwt)) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         String email = jwtUtil.extractEmail(jwt);
         String role = jwtUtil.extractRole(jwt);
 

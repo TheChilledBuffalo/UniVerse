@@ -30,7 +30,7 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/auth/**").permitAll()
+                        .requestMatchers("/", "/auth/login", "/auth/forgot-password", "/auth/reset-password-token").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 );
