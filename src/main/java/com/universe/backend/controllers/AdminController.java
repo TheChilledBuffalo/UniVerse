@@ -2,6 +2,7 @@ package com.universe.backend.controllers;
 
 import com.universe.backend.dto.*;
 import com.universe.backend.service.AdminCourseService;
+import com.universe.backend.service.AdminEnrollmentService;
 import com.universe.backend.service.AdminUserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ public class AdminController {
 
     private final AdminUserService adminUserService;
     private final AdminCourseService adminCourseService;
+    private final AdminEnrollmentService adminEnrollmentService;
 
     // User Management Endpoints
     @PostMapping("/user")
@@ -46,12 +48,12 @@ public class AdminController {
 
     // Course Management Endpoints
     @PostMapping("/course")
-    public CourseResponse createCourse(@RequestBody CreateCourseRequest request) {
+    public CourseResponse createCourse(@Valid @RequestBody CreateCourseRequest request) {
         return adminCourseService.createCourse(request);
     }
 
     @PostMapping("/courses/upload")
-    public List<CourseResponse> uploadCourses(@RequestParam MultipartFile file) {
+    public List<CourseResponse> uploadCourses(@RequestParam("file") MultipartFile file) {
         return adminCourseService.createCourses(file);
     }
 
@@ -61,12 +63,40 @@ public class AdminController {
     }
 
     @PutMapping("course/{id}")
-    public CourseResponse updateCourse(@PathVariable Long id, @RequestBody UpdateCourseRequest request) {
+    public CourseResponse updateCourse(@PathVariable Long id, @Valid @RequestBody UpdateCourseRequest request) {
         return adminCourseService.updateCourse(id, request);
     }
 
     @DeleteMapping("course/{id}")
     public void deleteCourse(@PathVariable Long id) {
         adminCourseService.deleteCourse(id);
+    }
+
+    // Enrollment Management Endpoints
+    @PostMapping("/enrollment")
+    public EnrollmentResponse enrollStudent(@Valid @RequestBody EnrollmentRequest request) {
+        return adminEnrollmentService.enrollStudent(request);
+    }
+
+    @PostMapping("/enrollments/upload")
+    public List<EnrollmentResponse> enrollStudents(@RequestParam("file") MultipartFile file) {
+        return adminEnrollmentService.enrollStudents(file);
+    }
+
+    @DeleteMapping("/enrollment")
+    public void removeEnrollment(
+            @RequestParam("student_id") Long studentId,
+            @RequestParam("course_id") Long courseId) {
+        adminEnrollmentService.removeEnrollment(studentId, courseId);
+    }
+
+    @GetMapping("/enrollments/course/{courseId}")
+    public List<EnrollmentResponse> getStudentsInCourse(@PathVariable Long courseId) {
+        return adminEnrollmentService.getStudentsInCourse(courseId);
+    }
+
+    @GetMapping("/enrollments/student/{studentId}")
+    public List<EnrollmentResponse> getCoursesForStudent(@PathVariable Long studentId) {
+        return adminEnrollmentService.getCoursesForStudent(studentId);
     }
 }
