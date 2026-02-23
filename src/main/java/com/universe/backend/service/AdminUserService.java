@@ -7,14 +7,13 @@ import com.universe.backend.entity.User;
 import com.universe.backend.enums.Department;
 import com.universe.backend.enums.Role;
 import com.universe.backend.repository.UserRepository;
+import com.universe.backend.utils.CsvUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.util.List;
 
 @Service
@@ -48,20 +47,12 @@ public class AdminUserService {
 
     @Transactional
     public List<UserResponse> createUsers(MultipartFile file) {
-        try (BufferedReader reader =
-                     new BufferedReader(
-                             new InputStreamReader(file.getInputStream()))) {
-
-            return reader.lines()
-                    .skip(1)
-                    .map(this::parseUserLine)
-                    .map(userRepository::save)
-                    .map(this::mapToResponse)
-                    .toList();
-
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to process file: " + e.getMessage());
-        }
+        return CsvUtil.readLines(file)
+                .stream()
+                .map(this::parseUserLine)
+                .map(userRepository::save)
+                .map(this::mapToResponse)
+                .toList();
     }
 
     public UserResponse updateUser(Long id, UpdateUserRequest request) {
