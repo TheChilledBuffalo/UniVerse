@@ -5,11 +5,14 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "format:check": "prettier --check .",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.21",
     "@universe/api-types": "workspace:*",
+    "clsx": "^2.1.1",
     "next": "16.1.6",
     "openapi-fetch": "^0.17.0",
     "openapi-react-query": "^0.5.4",
@@ -24,6 +27,10 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
+    "eslint-config-prettier": "10.1.8",
+    "prettier": "3.8.1",
+    "prettier-plugin-organize-imports": "^4.3.0",
+    "prettier-plugin-tailwindcss": "^0.7.2",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

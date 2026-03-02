@@ -3,6 +3,8 @@
   "scripts": {
     "dev": "./gradlew bootRun",
     "build": "./gradlew build",
-    "generate": "./gradlew generateOpenApiDocs"
+    "generate": "./gradlew generateOpenApiDocs",
+    "format:check": "./gradlew spotlessCheck",
+    "format": "./gradlew spotlessApply"
   }
 }

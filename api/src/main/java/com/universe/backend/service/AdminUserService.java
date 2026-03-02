@@ -8,13 +8,12 @@ import com.universe.backend.enums.Department;
 import com.universe.backend.enums.Role;
 import com.universe.backend.repository.UserRepository;
 import com.universe.backend.utils.CsvUtil;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -47,8 +46,7 @@ public class AdminUserService {
 
     @Transactional
     public List<UserResponse> createUsers(MultipartFile file) {
-        return CsvUtil.readLines(file)
-                .stream()
+        return CsvUtil.readLines(file).stream()
                 .map(this::parseUserLine)
                 .map(userRepository::save)
                 .map(this::mapToResponse)
@@ -56,8 +54,7 @@ public class AdminUserService {
     }
 
     public UserResponse updateUser(Long id, UpdateUserRequest request) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
 
         if (request.getName() != null) {
             user.setName(request.getName());
@@ -85,17 +82,13 @@ public class AdminUserService {
     }
 
     public void deleteUser(Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
 
         userRepository.delete(user);
     }
 
     public List<UserResponse> getAllUsers() {
-        return userRepository.findAll()
-                .stream()
-                .map(this::mapToResponse)
-                .toList();
+        return userRepository.findAll().stream().map(this::mapToResponse).toList();
     }
 
     private UserResponse mapToResponse(User user) {
@@ -114,8 +107,7 @@ public class AdminUserService {
 
         String[] parts = line.split(",");
 
-        if (parts.length < 3)
-            throw new RuntimeException("Invalid CSV format. Expected: name,email,role[,department]");
+        if (parts.length < 3) throw new RuntimeException("Invalid CSV format. Expected: name,email,role[,department]");
 
         String name = parts[0].trim();
         String email = parts[1].trim();

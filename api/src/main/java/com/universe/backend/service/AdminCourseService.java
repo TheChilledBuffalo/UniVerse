@@ -9,13 +9,12 @@ import com.universe.backend.enums.Role;
 import com.universe.backend.repository.CourseRepository;
 import com.universe.backend.repository.UserRepository;
 import com.universe.backend.utils.CsvUtil;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -26,7 +25,8 @@ public class AdminCourseService {
 
     public CourseResponse createCourse(CreateCourseRequest request) {
 
-        User teacher = userRepository.findById(request.getTeacherId())
+        User teacher = userRepository
+                .findById(request.getTeacherId())
                 .orElseThrow(() -> new RuntimeException("Teacher not found"));
 
         if (teacher.getRole() != Role.TEACHER) {
@@ -48,8 +48,7 @@ public class AdminCourseService {
 
     @Transactional
     public List<CourseResponse> createCourses(MultipartFile file) {
-        return CsvUtil.readLines(file)
-                .stream()
+        return CsvUtil.readLines(file).stream()
                 .map(this::parseCourseLine)
                 .map(courseRepository::save)
                 .map(this::mapToResponse)
@@ -58,8 +57,7 @@ public class AdminCourseService {
 
     public CourseResponse updateCourse(Long id, UpdateCourseRequest request) {
 
-        Course course = courseRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Course not found"));
+        Course course = courseRepository.findById(id).orElseThrow(() -> new RuntimeException("Course not found"));
 
         if (request.getName() != null) {
             course.setName(request.getName());
@@ -74,7 +72,8 @@ public class AdminCourseService {
             course.setMaxStudents(request.getMaxStudents());
         }
         if (request.getTeacherId() != null) {
-            User teacher = userRepository.findById(request.getTeacherId())
+            User teacher = userRepository
+                    .findById(request.getTeacherId())
                     .orElseThrow(() -> new RuntimeException("Teacher not found"));
 
             if (teacher.getRole() != Role.TEACHER) {
@@ -90,16 +89,12 @@ public class AdminCourseService {
     }
 
     public void deleteCourse(Long id) {
-        Course course = courseRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Course not found"));
+        Course course = courseRepository.findById(id).orElseThrow(() -> new RuntimeException("Course not found"));
         courseRepository.delete(course);
     }
 
     public List<CourseResponse> getAllCourses() {
-        return courseRepository.findAll()
-                .stream()
-                .map(this::mapToResponse)
-                .toList();
+        return courseRepository.findAll().stream().map(this::mapToResponse).toList();
     }
 
     private CourseResponse mapToResponse(@NonNull Course course) {
@@ -121,21 +116,19 @@ public class AdminCourseService {
         String[] parts = line.split(",");
 
         if (parts.length < 4)
-            throw new RuntimeException("Invalid CSV format. Expected: name,courseCode,description,teacherId[,maxStudents]");
+            throw new RuntimeException(
+                    "Invalid CSV format. Expected: name,courseCode,description,teacherId[,maxStudents]");
 
         String name = parts[0].trim();
         String courseCode = parts[1].trim();
         String description = parts[2].trim();
         Long teacherId = Long.parseLong(parts[3].trim());
 
-        Integer maxStudents =
-                parts.length > 4
-                        ? Integer.parseInt(parts[4].trim())
-                        : 70;
+        Integer maxStudents = parts.length > 4 ? Integer.parseInt(parts[4].trim()) : 70;
 
-        User teacher = userRepository.findById(teacherId)
-                .orElseThrow(() -> new RuntimeException(
-                        "Teacher not found: " + teacherId));
+        User teacher = userRepository
+                .findById(teacherId)
+                .orElseThrow(() -> new RuntimeException("Teacher not found: " + teacherId));
 
         if (teacher.getRole() != Role.TEACHER) {
             throw new RuntimeException("User is not a teacher: " + teacherId);

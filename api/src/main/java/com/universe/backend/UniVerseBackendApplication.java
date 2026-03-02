@@ -11,13 +11,12 @@ import org.springframework.web.bind.annotation.RestController;
 @EnableAsync
 public class UniVerseBackendApplication {
 
-	@GetMapping("/")
-	public String Hello() {
-		return "Hi, the backend is running!";
-	}
+    @GetMapping("/")
+    public String Hello() {
+        return "Hi, the backend is running!";
+    }
 
-	public static void main(String[] args) {
-		SpringApplication.run(UniVerseBackendApplication.class, args);
-	}
-
+    public static void main(String[] args) {
+        SpringApplication.run(UniVerseBackendApplication.class, args);
+    }
 }

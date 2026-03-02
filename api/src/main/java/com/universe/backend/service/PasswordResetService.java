@@ -6,16 +6,15 @@ import com.universe.backend.entity.PasswordResetToken;
 import com.universe.backend.entity.User;
 import com.universe.backend.repository.PasswordResetTokenRepository;
 import com.universe.backend.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
@@ -31,19 +30,16 @@ public class PasswordResetService {
 
     public void createResetToken(String email) {
 
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
 
         String rawToken = UUID.randomUUID().toString();
         String tokenHash = hash(rawToken);
 
-        tokenRepository.save(
-                PasswordResetToken.builder()
-                        .tokenHash(tokenHash)
-                        .user(user)
-                        .expiryDate(java.time.LocalDateTime.now().plusMinutes(15))
-                        .build()
-        );
+        tokenRepository.save(PasswordResetToken.builder()
+                .tokenHash(tokenHash)
+                .user(user)
+                .expiryDate(java.time.LocalDateTime.now().plusMinutes(15))
+                .build());
 
         String resetLink = frontendUrl + "/reset-password?token=" + rawToken;
 
@@ -51,22 +47,20 @@ public class PasswordResetService {
                 .to(user.getEmail())
                 .subject("Password Reset Request")
                 .body("Click the link to reset your password: " + resetLink)
-                .build()
-        );
+                .build());
     }
 
     public void resetPassword(ResetPasswordTokenRequest request) {
 
         String tokenHash = hash(request.getToken());
 
-        PasswordResetToken token = tokenRepository.findByTokenHash(tokenHash)
+        PasswordResetToken token = tokenRepository
+                .findByTokenHash(tokenHash)
                 .orElseThrow(() -> new RuntimeException("Invalid or expired token"));
 
-        if (token.getUsed())
-            throw new RuntimeException("Token has already been used");
+        if (token.getUsed()) throw new RuntimeException("Token has already been used");
 
-        if (token.getExpiryDate().isBefore(LocalDateTime.now()))
-            throw new RuntimeException("Token has expired");
+        if (token.getExpiryDate().isBefore(LocalDateTime.now())) throw new RuntimeException("Token has expired");
 
         User user = token.getUser();
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));

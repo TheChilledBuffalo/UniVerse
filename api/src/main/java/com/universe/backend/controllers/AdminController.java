@@ -5,11 +5,10 @@ import com.universe.backend.service.AdminCourseService;
 import com.universe.backend.service.AdminEnrollmentService;
 import com.universe.backend.service.AdminUserService;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/admin")
@@ -84,9 +83,7 @@ public class AdminController {
     }
 
     @DeleteMapping("/enrollment")
-    public void removeEnrollment(
-            @RequestParam("student_id") Long studentId,
-            @RequestParam("course_id") Long courseId) {
+    public void removeEnrollment(@RequestParam("student_id") Long studentId, @RequestParam("course_id") Long courseId) {
         adminEnrollmentService.removeEnrollment(studentId, courseId);
     }
 

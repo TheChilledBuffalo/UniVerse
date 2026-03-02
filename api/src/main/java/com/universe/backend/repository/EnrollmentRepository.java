@@ -1,10 +1,9 @@
 package com.universe.backend.repository;
 
 import com.universe.backend.entity.Enrollment;
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
 

@@ -4,12 +4,11 @@ import com.universe.backend.dto.*;
 import com.universe.backend.entity.User;
 import com.universe.backend.repository.UserRepository;
 import com.universe.backend.utils.JwtUtil;
+import java.time.LocalDateTime;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +22,8 @@ public class AuthService {
 
     public LoginResponse login(LoginRequest request) {
 
-        User user = userRepository.findByEmail(request.getEmail())
+        User user = userRepository
+                .findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
@@ -41,8 +41,7 @@ public class AuthService {
 
     public void resetPassword(Long userId, ResetPasswordRequest request) {
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
 
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
             throw new RuntimeException("Current password is incorrect");
@@ -68,8 +67,7 @@ public class AuthService {
 
     public void logout(String authHeader) {
 
-        if (authHeader == null || !authHeader.startsWith("Bearer "))
-            return;
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) return;
 
         String token = authHeader.substring(7);
         revokedTokenService.revokeToken(token);

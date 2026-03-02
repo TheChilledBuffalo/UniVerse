@@ -2,10 +2,9 @@ package com.universe.backend.service;
 
 import com.universe.backend.entity.RevokedToken;
 import com.universe.backend.repository.RevokedTokenRepository;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -15,12 +14,10 @@ public class RevokedTokenService {
 
     public void revokeToken(String token) {
 
-        revokedTokenRepository.save(
-                RevokedToken.builder()
-                        .token(token)
-                        .revokedAt(LocalDateTime.now())
-                        .build()
-        );
+        revokedTokenRepository.save(RevokedToken.builder()
+                .token(token)
+                .revokedAt(LocalDateTime.now())
+                .build());
     }
 
     public boolean isTokenRevoked(String token) {
