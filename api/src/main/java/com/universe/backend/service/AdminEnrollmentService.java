@@ -1,5 +1,6 @@
 package com.universe.backend.service;
 
+import com.universe.backend.dto.EmailDetails;
 import com.universe.backend.dto.EnrollmentRequest;
 import com.universe.backend.dto.EnrollmentResponse;
 import com.universe.backend.entity.Course;
@@ -13,6 +14,7 @@ import com.universe.backend.utils.CsvUtil;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
@@ -22,6 +24,7 @@ public class AdminEnrollmentService {
     private final EnrollmentRepository enrollmentRepository;
     private final UserRepository userRepository;
     private final CourseRepository courseRepository;
+    private final EmailService emailService;
 
     public EnrollmentResponse enrollStudent(EnrollmentRequest request) {
 
@@ -51,18 +54,30 @@ public class AdminEnrollmentService {
 
         enrollmentRepository.save(enrollment);
 
+        emailService.sendEmail(EmailDetails.builder()
+                .to(student.getEmail())
+                .subject("Course Enrollment: " + course.getName())
+                .body("You have been enrolled in the course: <strong>"
+                        + course.getName()
+                        + "</strong> ("
+                        + course.getCourseCode()
+                        + ").")
+                .build());
+
         return mapToResponse(enrollment);
     }
 
+    @Transactional
     public List<EnrollmentResponse> enrollStudents(MultipartFile file) {
+
         return CsvUtil.readLines(file).stream()
                 .map(this::parseEnrollmentLine)
-                .map(enrollmentRepository::save)
-                .map(this::mapToResponse)
+                .map(this::enrollStudent)
                 .toList();
     }
 
     public void removeEnrollment(Long studentId, Long courseId) {
+
         Enrollment enrollment = enrollmentRepository
                 .findByStudentIdAndCourseId(studentId, courseId)
                 .orElseThrow(() -> new RuntimeException("Enrollment not found"));
@@ -94,35 +109,27 @@ public class AdminEnrollmentService {
                 .toList();
     }
 
-    private Enrollment parseEnrollmentLine(String line) {
+    private EnrollmentRequest parseEnrollmentLine(String line) {
 
         // Expected CSV format: studentId,courseId
 
         String[] parts = line.split(",");
-        if (parts.length != 2) throw new RuntimeException("Invalid line format: " + line);
+
+        if (parts.length != 2) {
+            throw new RuntimeException("Invalid line format: " + line);
+        }
 
         Long studentId = Long.parseLong(parts[0].trim());
         Long courseId = Long.parseLong(parts[1].trim());
 
-        User student = userRepository
-                .findById(studentId)
-                .orElseThrow(() -> new RuntimeException("Student not found: " + studentId));
-        Course course = courseRepository
-                .findById(courseId)
-                .orElseThrow(() -> new RuntimeException("Course not found: " + courseId));
-
-        if (student.getRole() != Role.STUDENT) throw new RuntimeException("User is not a student: " + studentId);
-
-        if (enrollmentRepository.existsByStudentIdAndCourseId(studentId, courseId))
-            throw new RuntimeException("Student is already enrolled in this course: " + studentId + " -> " + courseId);
-
-        long count = enrollmentRepository.countByCourseId(courseId);
-        if (count >= course.getMaxStudents()) throw new RuntimeException("Course is full: " + courseId);
-
-        return Enrollment.builder().student(student).course(course).build();
+        return EnrollmentRequest.builder()
+                .studentId(studentId)
+                .courseId(courseId)
+                .build();
     }
 
     private EnrollmentResponse mapToResponse(Enrollment enrollment) {
+
         return EnrollmentResponse.builder()
                 .enrollmentId(enrollment.getId())
                 .studentId(enrollment.getStudent().getId())

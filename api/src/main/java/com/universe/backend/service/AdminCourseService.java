@@ -2,6 +2,7 @@ package com.universe.backend.service;
 
 import com.universe.backend.dto.CourseResponse;
 import com.universe.backend.dto.CreateCourseRequest;
+import com.universe.backend.dto.EmailDetails;
 import com.universe.backend.dto.UpdateCourseRequest;
 import com.universe.backend.entity.Course;
 import com.universe.backend.entity.User;
@@ -22,6 +23,7 @@ public class AdminCourseService {
 
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
+    private final EmailService emailService;
 
     public CourseResponse createCourse(CreateCourseRequest request) {
 
@@ -43,15 +45,25 @@ public class AdminCourseService {
 
         courseRepository.save(course);
 
+        emailService.sendEmail(EmailDetails.builder()
+                .to(teacher.getEmail())
+                .subject("New Course Assigned: " + course.getName())
+                .body("You have been assigned as the teacher for the course: <strong>"
+                        + course.getName()
+                        + "</strong> ("
+                        + course.getCourseCode()
+                        + ").")
+                .build());
+
         return mapToResponse(course);
     }
 
     @Transactional
     public List<CourseResponse> createCourses(MultipartFile file) {
+
         return CsvUtil.readLines(file).stream()
                 .map(this::parseCourseLine)
-                .map(courseRepository::save)
-                .map(this::mapToResponse)
+                .map(this::createCourse)
                 .toList();
     }
 
@@ -72,6 +84,7 @@ public class AdminCourseService {
             course.setMaxStudents(request.getMaxStudents());
         }
         if (request.getTeacherId() != null) {
+
             User teacher = userRepository
                     .findById(request.getTeacherId())
                     .orElseThrow(() -> new RuntimeException("Teacher not found"));
@@ -89,15 +102,19 @@ public class AdminCourseService {
     }
 
     public void deleteCourse(Long id) {
+
         Course course = courseRepository.findById(id).orElseThrow(() -> new RuntimeException("Course not found"));
+
         courseRepository.delete(course);
     }
 
     public List<CourseResponse> getAllCourses() {
+
         return courseRepository.findAll().stream().map(this::mapToResponse).toList();
     }
 
     private CourseResponse mapToResponse(@NonNull Course course) {
+
         return CourseResponse.builder()
                 .id(course.getId())
                 .name(course.getName())
@@ -108,16 +125,17 @@ public class AdminCourseService {
                 .build();
     }
 
-    private Course parseCourseLine(String line) {
+    private CreateCourseRequest parseCourseLine(String line) {
 
         // Expected CSV format:
         // name,courseCode,description,teacherId,maxStudents
 
         String[] parts = line.split(",");
 
-        if (parts.length < 4)
+        if (parts.length < 4) {
             throw new RuntimeException(
                     "Invalid CSV format. Expected: name,courseCode,description,teacherId[,maxStudents]");
+        }
 
         String name = parts[0].trim();
         String courseCode = parts[1].trim();
@@ -126,19 +144,11 @@ public class AdminCourseService {
 
         Integer maxStudents = parts.length > 4 ? Integer.parseInt(parts[4].trim()) : 70;
 
-        User teacher = userRepository
-                .findById(teacherId)
-                .orElseThrow(() -> new RuntimeException("Teacher not found: " + teacherId));
-
-        if (teacher.getRole() != Role.TEACHER) {
-            throw new RuntimeException("User is not a teacher: " + teacherId);
-        }
-
-        return Course.builder()
+        return CreateCourseRequest.builder()
                 .name(name)
                 .courseCode(courseCode)
                 .description(description)
-                .teacher(teacher)
+                .teacherId(teacherId)
                 .maxStudents(maxStudents)
                 .build();
     }
