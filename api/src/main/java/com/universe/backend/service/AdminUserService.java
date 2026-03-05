@@ -46,32 +46,37 @@ public class AdminUserService {
 
     @Transactional
     public List<UserResponse> createUsers(MultipartFile file) {
+
         return CsvUtil.readLines(file).stream()
                 .map(this::parseUserLine)
-                .map(userRepository::save)
-                .map(this::mapToResponse)
+                .map(this::createUser)
                 .toList();
     }
 
     public UserResponse updateUser(Long id, UpdateUserRequest request) {
+
         User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
 
         if (request.getName() != null) {
             user.setName(request.getName());
         }
+
         if (request.getEmail() != null) {
             if (userRepository.findByEmail(request.getEmail()).isPresent()) {
                 throw new RuntimeException("Email already exists");
             }
             user.setEmail(request.getEmail());
         }
+
         if (request.getPassword() != null) {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
             user.setMustChangePassword(false);
         }
+
         if (request.getRole() != null) {
             user.setRole(request.getRole());
         }
+
         if (request.getDepartment() != null) {
             user.setDepartment(request.getDepartment());
         }
@@ -82,16 +87,19 @@ public class AdminUserService {
     }
 
     public void deleteUser(Long id) {
+
         User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
 
         userRepository.delete(user);
     }
 
     public List<UserResponse> getAllUsers() {
+
         return userRepository.findAll().stream().map(this::mapToResponse).toList();
     }
 
     private UserResponse mapToResponse(User user) {
+
         return UserResponse.builder()
                 .id(user.getId())
                 .name(user.getName())
@@ -101,28 +109,30 @@ public class AdminUserService {
                 .build();
     }
 
-    private User parseUserLine(String line) {
+    private CreateUserRequest parseUserLine(String line) {
 
         // Expected CSV format: name,email,role,department
 
         String[] parts = line.split(",");
 
-        if (parts.length < 3) throw new RuntimeException("Invalid CSV format. Expected: name,email,role[,department]");
+        if (parts.length < 3) {
+            throw new RuntimeException("Invalid CSV format. Expected: name,email,role[,department]");
+        }
 
         String name = parts[0].trim();
         String email = parts[1].trim();
         String roleStr = parts[2].trim();
         String departmentStr = parts.length > 3 ? parts[3].trim() : "";
 
-        String defaultPassword = email.split("@")[0] + "123";
+        Role role = Role.valueOf(roleStr.toUpperCase());
 
-        return User.builder()
+        Department department = departmentStr.isEmpty() ? null : Department.valueOf(departmentStr.toUpperCase());
+
+        return CreateUserRequest.builder()
                 .name(name)
                 .email(email)
-                .role(Role.valueOf(roleStr.toUpperCase()))
-                .department(departmentStr.isEmpty() ? null : Department.valueOf(departmentStr))
-                .password(passwordEncoder.encode(defaultPassword))
-                .mustChangePassword(true)
+                .role(role)
+                .department(department)
                 .build();
     }
 }
