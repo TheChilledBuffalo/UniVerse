@@ -1,5 +1,6 @@
-package com.universe.backend.dto;
+package com.universe.backend.dto.responses;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
 
@@ -7,7 +8,9 @@ import lombok.Data;
 @Builder
 public class LoginResponse {
 
+    @NotNull
     private String token;
-    private String role;
+
+    @NotNull
     private Boolean mustChangePassword;
 }

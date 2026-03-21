@@ -1,6 +1,11 @@
 package com.universe.backend.controllers;
 
-import com.universe.backend.dto.*;
+import com.universe.backend.dto.requests.ForgotPasswordRequest;
+import com.universe.backend.dto.requests.LoginRequest;
+import com.universe.backend.dto.requests.ResetPasswordRequest;
+import com.universe.backend.dto.requests.ResetPasswordTokenRequest;
+import com.universe.backend.dto.responses.LoginResponse;
+import com.universe.backend.dto.responses.MeResponse;
 import com.universe.backend.entity.User;
 import com.universe.backend.service.AuthService;
 import jakarta.validation.Valid;

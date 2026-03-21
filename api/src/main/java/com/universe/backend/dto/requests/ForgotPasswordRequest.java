@@ -1,16 +1,13 @@
-package com.universe.backend.dto;
+package com.universe.backend.dto.requests;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import lombok.*;
+import lombok.Data;
 
 @Data
-public class LoginRequest {
+public class ForgotPasswordRequest {
 
     @Email
     @NotBlank
     private String email;
-
-    @NotBlank
-    private String password;
 }

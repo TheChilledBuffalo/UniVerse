@@ -1,4 +1,4 @@
-package com.universe.backend.dto;
+package com.universe.backend.dto.requests;
 
 import lombok.Data;
 

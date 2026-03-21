@@ -350,12 +350,12 @@ export interface components {
         };
         AnnouncementResponse: {
             /** Format: int64 */
-            id?: number;
-            title?: string;
-            content?: string;
-            postedBy?: string;
+            id: number;
+            title: string;
+            content: string;
+            postedBy: string;
             /** Format: date-time */
-            createdAt?: string;
+            createdAt: string;
             /** Format: date-time */
             updatedAt?: string;
         };
@@ -370,10 +370,10 @@ export interface components {
         };
         UserResponse: {
             /** Format: int64 */
-            id?: number;
-            name?: string;
-            email?: string;
-            role?: string;
+            id: number;
+            name: string;
+            email: string;
+            role: string;
             department?: string;
         };
         UpdateCourseRequest: {
@@ -387,13 +387,13 @@ export interface components {
         };
         CourseResponse: {
             /** Format: int64 */
-            id?: number;
-            name?: string;
-            courseCode?: string;
+            id: number;
+            name: string;
+            courseCode: string;
             description?: string;
-            teacherName?: string;
+            teacherName: string;
             /** Format: int32 */
-            maxStudents?: number;
+            maxStudents: number;
         };
         ResetPasswordRequest: {
             currentPassword: string;
@@ -409,9 +409,8 @@ export interface components {
             password: string;
         };
         LoginResponse: {
-            token?: string;
-            role?: string;
-            mustChangePassword?: boolean;
+            token: string;
+            mustChangePassword: boolean;
         };
         ForgotPasswordRequest: {
             /** Format: email */
@@ -431,13 +430,13 @@ export interface components {
         };
         EnrollmentResponse: {
             /** Format: int64 */
-            enrollmentId?: number;
+            enrollmentId: number;
             /** Format: int64 */
-            studentId?: number;
-            studentName?: string;
+            studentId: number;
+            studentName: string;
             /** Format: int64 */
-            courseId?: number;
-            courseName?: string;
+            courseId: number;
+            courseName: string;
         };
         EnrollmentRequest: {
             /** Format: int64 */
@@ -455,12 +454,12 @@ export interface components {
             maxStudents?: number;
         };
         MeResponse: {
-            name?: string;
-            email?: string;
+            name: string;
+            email: string;
             /** @enum {string} */
-            department?: "ComputerScience" | "Mathematics" | "Physics" | "Chemistry" | "Biology" | "Literature" | "History" | "Philosophy" | "Economics" | "Psychology" | "MechanicalEngineering" | "ElectricalEngineering" | "CivilEngineering" | "BusinessAdministration" | "Art" | "Music" | "Law" | "Medicine";
+            department: "ComputerScience" | "Mathematics" | "Physics" | "Chemistry" | "Biology" | "Literature" | "History" | "Philosophy" | "Economics" | "Psychology" | "MechanicalEngineering" | "ElectricalEngineering" | "CivilEngineering" | "BusinessAdministration" | "Art" | "Music" | "Law" | "Medicine";
             /** @enum {string} */
-            role?: "ADMIN" | "TEACHER" | "STUDENT";
+            role: "ADMIN" | "TEACHER" | "STUDENT";
         };
     };
     responses: never;

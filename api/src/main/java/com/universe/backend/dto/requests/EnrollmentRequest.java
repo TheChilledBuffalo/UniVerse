@@ -1,4 +1,4 @@
-package com.universe.backend.dto;
+package com.universe.backend.dto.requests;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;

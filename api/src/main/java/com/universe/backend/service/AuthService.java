@@ -1,6 +1,10 @@
 package com.universe.backend.service;
 
-import com.universe.backend.dto.*;
+import com.universe.backend.dto.requests.ForgotPasswordRequest;
+import com.universe.backend.dto.requests.LoginRequest;
+import com.universe.backend.dto.requests.ResetPasswordRequest;
+import com.universe.backend.dto.requests.ResetPasswordTokenRequest;
+import com.universe.backend.dto.responses.LoginResponse;
 import com.universe.backend.entity.User;
 import com.universe.backend.repository.UserRepository;
 import com.universe.backend.utils.JwtUtil;
@@ -34,7 +38,6 @@ public class AuthService {
 
         return LoginResponse.builder()
                 .token(token)
-                .role(user.getRole().name())
                 .mustChangePassword(user.getMustChangePassword())
                 .build();
     }

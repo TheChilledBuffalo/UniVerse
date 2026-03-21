@@ -1,13 +1,13 @@
-package com.universe.backend.dto;
+package com.universe.backend.dto.requests;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-public class ResetPasswordRequest {
+public class ResetPasswordTokenRequest {
 
     @NotBlank
-    private String currentPassword;
+    private String token;
 
     @NotBlank
     private String newPassword;

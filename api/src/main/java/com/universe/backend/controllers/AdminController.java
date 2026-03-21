@@ -1,6 +1,9 @@
 package com.universe.backend.controllers;
 
-import com.universe.backend.dto.*;
+import com.universe.backend.dto.requests.*;
+import com.universe.backend.dto.responses.CourseResponse;
+import com.universe.backend.dto.responses.EnrollmentResponse;
+import com.universe.backend.dto.responses.UserResponse;
 import com.universe.backend.service.AdminCourseService;
 import com.universe.backend.service.AdminEnrollmentService;
 import com.universe.backend.service.AdminUserService;

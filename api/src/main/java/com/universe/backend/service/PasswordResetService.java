@@ -1,7 +1,7 @@
 package com.universe.backend.service;
 
 import com.universe.backend.dto.EmailDetails;
-import com.universe.backend.dto.ResetPasswordTokenRequest;
+import com.universe.backend.dto.requests.ResetPasswordTokenRequest;
 import com.universe.backend.entity.PasswordResetToken;
 import com.universe.backend.entity.User;
 import com.universe.backend.repository.PasswordResetTokenRepository;

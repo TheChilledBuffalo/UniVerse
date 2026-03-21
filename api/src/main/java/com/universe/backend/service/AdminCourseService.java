@@ -1,9 +1,9 @@
 package com.universe.backend.service;
 
-import com.universe.backend.dto.CourseResponse;
-import com.universe.backend.dto.CreateCourseRequest;
 import com.universe.backend.dto.EmailDetails;
-import com.universe.backend.dto.UpdateCourseRequest;
+import com.universe.backend.dto.requests.CreateCourseRequest;
+import com.universe.backend.dto.requests.UpdateCourseRequest;
+import com.universe.backend.dto.responses.CourseResponse;
 import com.universe.backend.entity.Course;
 import com.universe.backend.entity.User;
 import com.universe.backend.enums.Role;

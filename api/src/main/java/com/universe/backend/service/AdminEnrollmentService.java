@@ -1,8 +1,8 @@
 package com.universe.backend.service;
 
 import com.universe.backend.dto.EmailDetails;
-import com.universe.backend.dto.EnrollmentRequest;
-import com.universe.backend.dto.EnrollmentResponse;
+import com.universe.backend.dto.requests.EnrollmentRequest;
+import com.universe.backend.dto.responses.EnrollmentResponse;
 import com.universe.backend.entity.Course;
 import com.universe.backend.entity.Enrollment;
 import com.universe.backend.entity.User;

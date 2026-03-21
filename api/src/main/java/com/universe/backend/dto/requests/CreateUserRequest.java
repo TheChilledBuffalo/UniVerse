@@ -1,5 +1,7 @@
-package com.universe.backend.dto;
+package com.universe.backend.dto.requests;
 
+import com.universe.backend.enums.Department;
+import com.universe.backend.enums.Role;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -11,18 +13,16 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateCourseRequest {
+public class CreateUserRequest {
 
     @NotBlank
     private String name;
 
     @NotBlank
-    private String courseCode;
-
-    private String description;
+    private String email;
 
     @NotNull
-    private Long teacherId;
+    private Role role;
 
-    private Integer maxStudents;
+    private Department department;
 }

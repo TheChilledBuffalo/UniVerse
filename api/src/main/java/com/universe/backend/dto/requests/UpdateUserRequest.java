@@ -1,4 +1,4 @@
-package com.universe.backend.dto;
+package com.universe.backend.dto.requests;
 
 import com.universe.backend.enums.Department;
 import com.universe.backend.enums.Role;

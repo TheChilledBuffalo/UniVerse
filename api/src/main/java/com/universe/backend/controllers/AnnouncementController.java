@@ -1,8 +1,8 @@
 package com.universe.backend.controllers;
 
-import com.universe.backend.dto.AnnouncementResponse;
-import com.universe.backend.dto.CreateAnnouncementRequest;
-import com.universe.backend.dto.UpdateAnnouncementRequest;
+import com.universe.backend.dto.requests.CreateAnnouncementRequest;
+import com.universe.backend.dto.requests.UpdateAnnouncementRequest;
+import com.universe.backend.dto.responses.AnnouncementResponse;
 import com.universe.backend.entity.User;
 import com.universe.backend.service.AnnouncementService;
 import jakarta.validation.Valid;

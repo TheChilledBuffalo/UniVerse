@@ -1,8 +1,8 @@
 package com.universe.backend.service;
 
-import com.universe.backend.dto.CreateUserRequest;
-import com.universe.backend.dto.UpdateUserRequest;
-import com.universe.backend.dto.UserResponse;
+import com.universe.backend.dto.requests.CreateUserRequest;
+import com.universe.backend.dto.requests.UpdateUserRequest;
+import com.universe.backend.dto.responses.UserResponse;
 import com.universe.backend.entity.User;
 import com.universe.backend.enums.Department;
 import com.universe.backend.enums.Role;
