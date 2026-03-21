@@ -24,6 +24,10 @@
       "dependsOn": ["^lint"],
       "cache": false
     },
+    "lint:fix": {
+      "dependsOn": ["^lint:fix"],
+      "cache": false
+    },
     "format:check": {
       "dependsOn": ["^format:check"],
       "cache": false
