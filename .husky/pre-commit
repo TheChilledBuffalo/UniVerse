@@ -1,10 +1,13 @@
 #!/bin/sh
 
-STAGED_FILES=$(git diff --cached --name-only)
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR)
 
 pnpm format
 pnpm lint:fix
 pnpm generate
-git add packages/api-types/src/index.ts
 
-echo "$STAGED_FILES" | xargs git add
+if [ -n "$STAGED_FILES" ]; then
+  echo "$STAGED_FILES" | xargs git add
+fi
+
+git add packages/api-types/src/index.ts
