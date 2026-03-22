@@ -41,7 +41,7 @@ public class PasswordResetService {
                 .expiryDate(java.time.LocalDateTime.now().plusMinutes(15))
                 .build());
 
-        String resetLink = frontendUrl + "/reset-password?token=" + rawToken;
+        String resetLink = frontendUrl + "/auth/reset-password?token=" + rawToken;
 
         emailService.sendEmail(EmailDetails.builder()
                 .to(user.getEmail())
