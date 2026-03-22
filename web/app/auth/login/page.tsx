@@ -44,9 +44,11 @@ export default function LoginPage() {
   const currentUserQuery = useCurrentUser();
 
   const loginMutation = api.useMutation("post", "/auth/login", {
-    onSuccess: async (data: components["schemas"]["LoginResponse"]) => {
+    onMutate: () => {
       setIsLoggingIn(true);
+    },
 
+    onSuccess: async (data: components["schemas"]["LoginResponse"]) => {
       const { token, mustChangePassword } = data;
 
       if (!token) {
