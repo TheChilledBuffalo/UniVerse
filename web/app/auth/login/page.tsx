@@ -4,6 +4,7 @@ import Button from "@/components/Button";
 import InputField from "@/components/InputField";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import api from "@/lib/api";
+import parseErrorMessage from "@/lib/parseErrorMessage";
 import useAuthStore from "@/store/authStore";
 import { components } from "@universe/api-types";
 import clsx from "clsx";
@@ -12,20 +13,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import toast from "react-hot-toast";
-
-function parseErrorMessage(error: unknown): string {
-  if (error && typeof error === "object") {
-    if ("message" in error && typeof error.message === "string") {
-      return error.message;
-    }
-
-    if ("error" in error && typeof error.error === "string") {
-      return error.error;
-    }
-  }
-
-  return "Unable to login. Please try again.";
-}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -70,7 +57,10 @@ export default function LoginPage() {
     },
 
     onError: (error) => {
-      const errorMessage = parseErrorMessage(error);
+      const errorMessage = parseErrorMessage(
+        error,
+        "Unable to login. Please try again.",
+      );
       setIsLoggingIn(false);
       toast.error(errorMessage);
     },
