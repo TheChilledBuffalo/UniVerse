@@ -1,10 +1,10 @@
 {
   "name": "api",
   "scripts": {
-    "dev": "./gradlew bootRun",
-    "build": "./gradlew build",
-    "generate": "./gradlew generateOpenApiDocs",
-    "format:check": "./gradlew spotlessCheck",
-    "format": "./gradlew spotlessApply"
+    "dev": "node ./scripts/run-gradle.cjs bootRun",
+    "build": "node ./scripts/run-gradle.cjs build",
+    "generate": "node ./scripts/run-gradle.cjs generateOpenApiDocs",
+    "format:check": "node ./scripts/run-gradle.cjs spotlessCheck",
+    "format": "node ./scripts/run-gradle.cjs spotlessApply"
   }
 }
