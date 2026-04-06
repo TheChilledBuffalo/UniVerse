@@ -47,3 +47,7 @@ minio:
 
 frontend:
   url: ${FRONTEND_URL}
+
+gemini:
+  api:
+    key: ${GEMINI_API_KEY}

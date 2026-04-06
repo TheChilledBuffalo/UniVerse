@@ -30,3 +30,7 @@ minio:
 
 frontend:
   url: http://localhost:3000
+
+gemini:
+  api:
+    key: dummy-key-for-openapi-generation
