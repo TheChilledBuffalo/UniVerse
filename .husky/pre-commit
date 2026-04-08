@@ -10,7 +10,7 @@ if [ -n "$STAGED_FILES" ]; then
   echo "$STAGED_FILES" | xargs git add
 fi
 
-CONTROLLER_CHANGES=$(git diff --cached --name-only --diff-filter=ACMR -- api/src/main/java/com/universe/backend/controller)
+CONTROLLER_CHANGES=$(git diff --cached --name-only --diff-filter=ACMR -- api/src/main/java/com/universe/backend/controllers)
 
 if [ -n "$CONTROLLER_CHANGES" ]; then
   git add packages/api-types/src/index.ts
