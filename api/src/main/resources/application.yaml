@@ -35,6 +35,17 @@ spring:
       name: ${SPRING_SECURITY_USER}
       password: ${SPRING_SECURITY_PASSWORD}
 
+  ai:
+    retry:
+      on-client-errors: false
+      max-attempts: 1
+    google:
+      genai:
+        api-key: ${GEMINI_API_KEY}
+        chat:
+          options:
+            model: gemma-4-31b-it
+
 jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION}
@@ -47,7 +58,3 @@ minio:
 
 frontend:
   url: ${FRONTEND_URL}
-
-gemini:
-  api:
-    key: ${GEMINI_API_KEY}

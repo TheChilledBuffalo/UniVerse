@@ -17,6 +17,13 @@ spring:
     user:
       name: admin
       password: admin
+  ai:
+    google:
+      genai:
+        api-key: dummy-api-key
+        chat:
+          options:
+            model: gemma-4-31b-it
 
 jwt:
   secret: dGVzdC1zZWNyZXQta2V5LXRoYXQtaXMtbG9uZy1lbm91Z2gtZm9yLWhzMjU2
@@ -30,7 +37,3 @@ minio:
 
 frontend:
   url: http://localhost:3000
-
-gemini:
-  api:
-    key: dummy-key-for-openapi-generation

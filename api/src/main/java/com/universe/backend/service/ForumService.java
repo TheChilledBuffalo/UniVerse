@@ -1,15 +1,14 @@
 package com.universe.backend.service;
 
-import com.universe.backend.dto.ForumPostRequest;
-import com.universe.backend.dto.ForumReplyRequest;
-import com.universe.backend.entity.ForumPost;
-import com.universe.backend.entity.ForumReply;
+import com.universe.backend.dto.requests.ForumMessageRequest;
+import com.universe.backend.entity.Course;
+import com.universe.backend.entity.ForumMessage;
 import com.universe.backend.entity.User;
-import com.universe.backend.repository.ForumPostRepository;
-import com.universe.backend.repository.ForumReplyRepository;
+import com.universe.backend.enums.Role;
+import com.universe.backend.repository.ForumMessageRepository;
 import com.universe.backend.repository.UserRepository;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -21,78 +20,69 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class ForumService {
 
-    private final ForumPostRepository forumPostRepository;
-    private final ForumReplyRepository forumReplyRepository;
+    private final ForumMessageRepository forumMessageRepository;
     private final UserRepository userRepository;
     private final AiService aiService;
+    private final CourseService courseService;
+
+    private static final Pattern AI_TRIGGER_PATTERN = Pattern.compile("(?i)(^|\\s)@ai\\b");
 
     @Transactional
-    public ForumPost createPost(ForumPostRequest request, String email) {
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+    public ForumMessage sendMessage(Long courseId, ForumMessageRequest request, Long userId, Role role) {
+        User user = getUserById(userId);
+        Course course = courseService.getAccessibleCourse(courseId, userId, role);
 
-        ForumPost post = ForumPost.builder()
-                .title(request.getTitle())
+        ForumMessage message = ForumMessage.builder()
                 .content(request.getContent())
                 .author(user)
-                .build();
-
-        return forumPostRepository.save(post);
-    }
-
-    @Transactional
-    public ForumReply addReply(Long postId, ForumReplyRequest request, String email) {
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
-
-        ForumPost post = forumPostRepository.findById(postId).orElseThrow(() -> new RuntimeException("Post not found"));
-
-        ForumReply reply = ForumReply.builder()
-                .content(request.getContent())
-                .post(post)
-                .author(user)
+                .course(course)
                 .isAiResponse(false)
                 .build();
 
-        ForumReply savedReply = forumReplyRepository.save(reply);
+        ForumMessage savedMessage = forumMessageRepository.save(message);
 
-        // Check for AI trigger
-        if (request.getContent() != null && request.getContent().contains("@ai")) {
-            processAiReplyAsync(post, request.getContent(), user);
+        if (containsAiTrigger(request.getContent())) {
+            processAiReplyAsync(courseId, request.getContent(), user.getId());
         }
 
-        return savedReply;
+        return savedMessage;
     }
 
     @Async
     @Transactional
-    public void processAiReplyAsync(ForumPost post, String triggerContent, User originalAuthor) {
+    public void processAiReplyAsync(Long courseId, String triggerContent, Long requesterUserId) {
         try {
-            // Extract the question after the @ai trigger
+            User requester = getUserById(requesterUserId);
+            Course course = courseService.getAccessibleCourse(courseId, requesterUserId, requester.getRole());
+
             String question = extractQuestion(triggerContent);
 
-            // Fetch last 5 replies for context (Hybrid approach)
-            List<ForumReply> recentReplies = forumReplyRepository.findByPostIdOrderByCreatedAtAsc(post.getId());
-            int startIndex = Math.max(0, recentReplies.size() - 5);
-            List<String> context = recentReplies.subList(startIndex, recentReplies.size()).stream()
-                    .map(r -> r.getAuthor().getName() + ": " + r.getContent())
-                    .collect(Collectors.toList());
+            List<ForumMessage> recentMessages = forumMessageRepository.findByCourseIdOrderByCreatedAtAsc(courseId);
+            int startIndex = Math.max(0, recentMessages.size() - 10);
+            List<String> context = new java.util.ArrayList<>();
+            context.add("Course: " + course.getName() + " (" + course.getCourseCode() + ")");
+            for (ForumMessage msg : recentMessages.subList(startIndex, recentMessages.size())) {
+                String name = Boolean.TRUE.equals(msg.getIsAiResponse())
+                        ? "UniVerse AI"
+                        : msg.getAuthor().getName();
+                context.add(name + ": " + msg.getContent());
+            }
 
-            // Add the original post context
-            context.add(0, "Original Post Title: " + post.getTitle());
-            context.add(1, post.getAuthor().getName() + ": " + post.getContent());
+            AiService.AiReplyResult aiResult = aiService.generateReply(question, context);
 
-            // Generate AI response
-            String aiAnswer = aiService.generateReply(question, context);
-
-            // Save AI reply
-            ForumReply aiReply = ForumReply.builder()
-                    .content(aiAnswer)
-                    .post(post)
-                    .author(originalAuthor) // Tie it to the user who requested it
+            ForumMessage aiReply = ForumMessage.builder()
+                    .content(aiResult.content())
+                    .course(course)
+                    .author(requester)
                     .isAiResponse(true)
                     .build();
 
-            forumReplyRepository.save(aiReply);
-            log.info("Successfully generated and saved AI reply for post {}", post.getId());
+            forumMessageRepository.save(aiReply);
+            if (aiResult.fallback()) {
+                log.warn("Saved fallback AI chat reply for course {} (reason={})", courseId, aiResult.reason());
+            } else {
+                log.info("Successfully generated and saved AI chat reply for course {}", courseId);
+            }
 
         } catch (Exception e) {
             log.error("Failed to process AI reply asynchronously", e);
@@ -100,20 +90,32 @@ public class ForumService {
     }
 
     private String extractQuestion(String content) {
-        int index = content.indexOf("@ai");
-        if (index != -1) {
-            return content.substring(index + 3).trim();
+        if (content == null) {
+            return "Please help with this discussion thread.";
         }
-        return content;
+
+        int index = content.toLowerCase().indexOf("@ai");
+        if (index != -1) {
+            String question = content.substring(index + 3).trim();
+            if (!question.isBlank()) {
+                return question;
+            }
+        }
+
+        return content.isBlank() ? "Please help with this discussion thread." : content;
+    }
+
+    private boolean containsAiTrigger(String content) {
+        return content != null && AI_TRIGGER_PATTERN.matcher(content).find();
+    }
+
+    private User getUserById(Long userId) {
+        return userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
     }
 
     @Transactional(readOnly = true)
-    public List<ForumPost> getAllPosts() {
-        return forumPostRepository.findAll();
-    }
-
-    @Transactional(readOnly = true)
-    public ForumPost getPost(Long id) {
-        return forumPostRepository.findById(id).orElseThrow(() -> new RuntimeException("Post not found"));
+    public List<ForumMessage> getMessages(Long courseId, Long userId, Role role) {
+        courseService.getAccessibleCourse(courseId, userId, role);
+        return forumMessageRepository.findByCourseIdOrderByCreatedAtAsc(courseId);
     }
 }

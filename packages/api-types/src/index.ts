@@ -148,6 +148,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/courses/{courseId}/forum/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getMessages"];
+        put?: never;
+        post: operations["sendMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/reset-password": {
         parameters: {
             query?: never;
@@ -726,6 +742,22 @@ export interface components {
             teacherName: string;
             /** Format: int32 */
             maxStudents: number;
+        };
+        ForumMessageRequest: {
+            content: string;
+        };
+        ForumMessageResponse: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int64 */
+            courseId?: number;
+            content?: string;
+            authorName?: string;
+            /** Format: int64 */
+            authorId?: number;
+            isAiResponse?: boolean;
+            /** Format: date-time */
+            createdAt?: string;
         };
         ResetPasswordRequest: {
             currentPassword: string;
@@ -1358,6 +1390,54 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["CourseAssignmentResponse"];
+                };
+            };
+        };
+    };
+    getMessages: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                courseId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ForumMessageResponse"][];
+                };
+            };
+        };
+    };
+    sendMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                courseId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ForumMessageRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ForumMessageResponse"];
                 };
             };
         };

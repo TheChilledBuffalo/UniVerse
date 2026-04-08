@@ -1,79 +1,93 @@
 package com.universe.backend.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
-import java.util.Map;
+import java.util.Locale;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 @Slf4j
 @Service
 public class AiService {
 
-    @Value("${gemini.api.key:}")
-    private String apiKey;
+    private static final String FALLBACK_GENERIC = "I'm sorry, I encountered an error while trying to answer.";
+    private static final String FALLBACK_QUOTA =
+            "AI is temporarily unavailable due to API quota limits. Please try again in a minute.";
 
-    private final RestTemplate restTemplate = new RestTemplate();
-    private final ObjectMapper objectMapper = new ObjectMapper();
-    private static final String GEMINI_URL =
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=";
+    private static final String SYSTEM_INSTRUCTION =
+            "You are a helpful assistant participating directly in a course chat. "
+                    + "Read the provided chat context to understand the flow, but ONLY answer the 'Latest user question'. "
+                    + "CRITICAL RULES: "
+                    + "1. Provide ONLY the direct answer to the question. "
+                    + "2. DO NOT output your internal reasoning, thought process, or analysis of the context. "
+                    + "3. DO NOT summarize the context, repeat the question, or explain what the user is asking. "
+                    + "4. DO NOT use meta-phrases like 'Based on the context...' or 'Here is the answer...'. "
+                    + "5. Act exactly as a human participant in a chat room giving a direct reply.";
 
-    public String generateReply(String question, List<String> threadContext) {
-        if (apiKey == null || apiKey.isEmpty()) {
-            throw new IllegalStateException("Gemini API Key is missing");
-        }
+    private final ChatClient chatClient;
 
+    public AiService(ChatClient.Builder chatClientBuilder) {
+        this.chatClient = chatClientBuilder.build();
+    }
+
+    public AiReplyResult generateReply(String question, List<String> threadContext) {
         try {
-            String prompt = buildPrompt(question, threadContext);
+            String promptText = buildPrompt(question, threadContext);
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-
-            // Construct payload: {"contents": [{"parts": [{"text": prompt }]}]}
-            Map<String, Object> payload = Map.of("contents", List.of(Map.of("parts", List.of(Map.of("text", prompt)))));
-
-            HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
-
-            ResponseEntity<String> response = restTemplate.postForEntity(GEMINI_URL + apiKey, request, String.class);
-
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                JsonNode rootNode = objectMapper.readTree(response.getBody());
-                JsonNode textNode = rootNode.path("candidates")
-                        .path(0)
-                        .path("content")
-                        .path("parts")
-                        .path(0)
-                        .path("text");
-                return textNode.asText();
-            } else {
-                log.error("Failed to generate AI reply. Status: {}", response.getStatusCode());
-                return "I'm sorry, I couldn't process this request right now.";
+            String content = chatClient
+                    .prompt()
+                    .system(SYSTEM_INSTRUCTION)
+                    .user(promptText)
+                    .call()
+                    .content();
+            if (content == null || content.isBlank()) {
+                return new AiReplyResult(FALLBACK_GENERIC, true, "empty_response");
             }
 
+            return new AiReplyResult(content, false, null);
+
         } catch (Exception e) {
-            log.error("Error communicating with Gemini API", e);
-            return "I'm sorry, I encountered an error while trying to answer.";
+            String rootMessage = getRootCauseMessage(e);
+            String normalized = rootMessage.toLowerCase(Locale.ROOT);
+
+            if (normalized.contains("quota exceeded")
+                    || normalized.contains("429")
+                    || normalized.contains("rate limit")) {
+                log.warn("AI provider quota/rate-limited: {}", rootMessage);
+                return new AiReplyResult(FALLBACK_QUOTA, true, "quota_exceeded");
+            }
+
+            log.error("Error communicating with Gemini API via Spring AI", e);
+            return new AiReplyResult(FALLBACK_GENERIC, true, "provider_error");
         }
+    }
+
+    private String getRootCauseMessage(Throwable throwable) {
+        Throwable current = throwable;
+        while (current.getCause() != null) {
+            current = current.getCause();
+        }
+
+        String message = current.getMessage();
+        return message == null ? current.getClass().getSimpleName() : message;
     }
 
     private String buildPrompt(String question, List<String> threadContext) {
-        if (threadContext == null || threadContext.isEmpty()) {
-            return question;
+        StringBuilder sb = new StringBuilder();
+
+        if (threadContext != null && !threadContext.isEmpty()) {
+            sb.append("--- CHAT CONTEXT (Oldest to Newest) ---\n");
+            for (String msg : threadContext) {
+                sb.append(msg).append("\n");
+            }
+            sb.append("--------------------------------------\n\n");
         }
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("Context:\n");
-        for (String msg : threadContext) {
-            sb.append(msg).append("\n");
-        }
-        sb.append("\nQuestion: ").append(question);
+        sb.append("Latest user question: ");
+        sb.append(question == null || question.isBlank() ? "Please help with this topic." : question);
+
         return sb.toString();
     }
+
+    public record AiReplyResult(String content, boolean fallback, String reason) {}
 }
