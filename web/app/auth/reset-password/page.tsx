@@ -8,10 +8,10 @@ import { components } from "@universe/api-types";
 import clsx from "clsx";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -127,5 +127,13 @@ export default function ResetPasswordPage() {
         Back to Login
       </Link>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<div className="text-muted">Loading...</div>}>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }

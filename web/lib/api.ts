@@ -36,3 +36,27 @@ fetchClient.use(setAuthHeaderMiddleware);
 const api = createClient(fetchClient);
 
 export default api;
+
+export const downloadAuthenticatedFile = async (
+  url: string,
+  filename: string,
+) => {
+  try {
+    const token = useAuthStore.getState().token;
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error("Download failed");
+    const blob = await res.blob();
+    const blobUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(blobUrl);
+  } catch (e) {
+    throw e;
+  }
+};

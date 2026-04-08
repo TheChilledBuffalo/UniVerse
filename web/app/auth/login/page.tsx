@@ -45,6 +45,7 @@ export default function LoginPage() {
       }
 
       if (mustChangePassword) {
+        setToken(token);
         router.push("/auth/change-password");
         return;
       }

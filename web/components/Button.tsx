@@ -16,8 +16,8 @@ export default function Button({
       {...props}
       className={clsx(
         `
-          min-w-1/2 self-center rounded-xl bg-violet-600 py-3 font-semibold
-          text-white shadow-md transition-all duration-200
+          shrink-0 self-center rounded-xl bg-violet-600 px-5 py-3 font-semibold
+          whitespace-nowrap text-white shadow-md transition-all duration-200
           hover:bg-violet-700 hover:shadow-lg
           active:scale-[0.98]
         `,
