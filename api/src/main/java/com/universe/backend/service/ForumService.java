@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +26,10 @@ public class ForumService {
     private final UserRepository userRepository;
     private final AiService aiService;
     private final CourseService courseService;
+
+    @Autowired
+    @Lazy
+    private ForumService self;
 
     private static final Pattern AI_TRIGGER_PATTERN = Pattern.compile("(?i)(^|\\s)@ai\\b");
 
@@ -42,7 +48,7 @@ public class ForumService {
         ForumMessage savedMessage = forumMessageRepository.save(message);
 
         if (containsAiTrigger(request.getContent())) {
-            processAiReplyAsync(courseId, request.getContent(), user.getId());
+            self.processAiReplyAsync(courseId, request.getContent(), user.getId());
         }
 
         return savedMessage;
